@@ -1,0 +1,23 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: taskweb_mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpass123
+      MYSQL_DATABASE: taskweb_db
+      MYSQL_USER: taskweb_user
+      MYSQL_PASSWORD: taskweb_pass123
+      TZ: UTC
+    ports:
+      - "3307:3306"
+    volumes:
+      - taskweb_mysql_data:/var/lib/mysql
+      - ./init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+
+volumes:
+  taskweb_mysql_data:

@@ -1,0 +1,12 @@
+app\controller\LogoutServlet.class
+app\model\User.class
+app\util\Validation.class
+app\model\Task.class
+app\config\MainTest.class
+app\util\Flash.class
+app\config\ConexionDB.class
+app\controller\TaskServlet.class
+app\dao\UserDAO.class
+app\dao\TaskDAO.class
+app\controller\AuthServlet.class
+app\filter\AuthFilter.class
