@@ -23,10 +23,10 @@ public class AuthFilter implements Filter {
         HttpServletResponse response = (HttpServletResponse) res;
 
         HttpSession session = request.getSession(false);
-        Object user = (session == null) ? null : session.getAttribute("user");
+        Object username = (session == null) ? null : session.getAttribute("username"); // ← Cambiar "user" por "username"
 
-        if (user == null) {
-            response.sendRedirect(request.getContextPath() + "/login.jsp");
+        if (username == null) {
+            response.sendRedirect(request.getContextPath() + "/login"); // ← Y mejor redirige a /login, no a /login.jsp
             return;
         }
         chain.doFilter(req, res);

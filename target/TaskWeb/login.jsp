@@ -8,22 +8,36 @@
 %>
 <!DOCTYPE html>
 <html>
-<head><title>Login</title></head>
+<head>
+  <meta charset="UTF-8">
+  <title>Login</title>
+</head>
 <body>
   <h2>Login</h2>
 
-  <% if (flashSuccess != null) { %><p style="color:green;"><%= flashSuccess %></p><% } %>
-  <% if (flashError != null) { %><p style="color:red;"><%= flashError %></p><% } %>
-  <% if (error != null) { %><p style="color:red;"><%= error %></p><% } %>
+  <% if (flashSuccess != null) { %>
+    <p style="color:green;"><%= flashSuccess %></p>
+  <% } %>
+
+  <% if (flashError != null) { %>
+    <p style="color:red;"><%= flashError %></p>
+  <% } %>
+
+  <% if (error != null) { %>
+    <p style="color:red;"><%= error %></p>
+  <% } %>
 
   <form method="post" action="<%= request.getContextPath() %>/login">
     <label>Username:</label>
     <input name="username" required>
     <br>
+
     <label>Password:</label>
     <input name="password" type="password" required>
     <br>
+
     <button type="submit">Sign in</button>
+    <a href="<%= request.getContextPath() %>/register">Create account</a>
   </form>
 </body>
 </html>

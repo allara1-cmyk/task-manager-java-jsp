@@ -9,82 +9,115 @@ import java.util.List;
 
 public class TaskDAO {
 
-    public List<Task> findAllOrdered() throws Exception {
-        String sql = """
-            SELECT * FROM tasks
-            ORDER BY 
-              CASE WHEN is_done = 0 THEN 0 ELSE 1 END,
-              CASE WHEN is_done = 0 AND due_date IS NOT NULL THEN 0 ELSE 1 END,
-              due_date ASC,
-              id DESC
-        """;
-
-        List<Task> out = new ArrayList<>();
+    // Método existente - listar todas ordenadas
+    public List<Task> findAllOrdered() throws SQLException {
+        String sql = "SELECT * FROM tasks ORDER BY is_done ASC, due_date ASC, id DESC";
+        List<Task> tasks = new ArrayList<>();
+        
         try (Connection conn = ConexionDB.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql);
-             ResultSet rs = ps.executeQuery()) {
-
-            while (rs.next()) out.add(map(rs));
-        }
-        return out;
-    }
-
-    public Task findById(int id) throws Exception {
-        String sql = "SELECT * FROM tasks WHERE id=?";
-        try (Connection conn = ConexionDB.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? map(rs) : null;
+             PreparedStatement stmt = conn.prepareStatement(sql);
+             ResultSet rs = stmt.executeQuery()) {
+            
+            while (rs.next()) {
+                tasks.add(mapTask(rs));
             }
         }
+        return tasks;
     }
 
-    public void insert(Task t) throws Exception {
-        String sql = "INSERT INTO tasks(title, description, is_done, due_date) VALUES(?,?,?,?)";
+    // NUEVO - Buscar tareas por título o descripción
+    public List<Task> searchTasks(String searchTerm) throws SQLException {
+        String sql = "SELECT * FROM tasks WHERE title LIKE ? OR description LIKE ? " +
+                     "ORDER BY is_done ASC, due_date ASC, id DESC";
+        List<Task> tasks = new ArrayList<>();
+        String searchPattern = "%" + searchTerm + "%";
+        
         try (Connection conn = ConexionDB.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, t.getTitle());
-            ps.setString(2, t.getDescription());
-            ps.setBoolean(3, t.isDone());
-            if (t.getDueDate() == null) ps.setNull(4, Types.DATE);
-            else ps.setDate(4, t.getDueDate());
-            ps.executeUpdate();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, searchPattern);
+            stmt.setString(2, searchPattern);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                while (rs.next()) {
+                    tasks.add(mapTask(rs));
+                }
+            }
+        }
+        return tasks;
+    }
+
+    // Método existente - buscar por ID
+    public Task findById(int id) throws SQLException {
+        String sql = "SELECT * FROM tasks WHERE id = ?";
+        
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, id);
+            
+            try (ResultSet rs = stmt.executeQuery()) {
+                if (rs.next()) {
+                    return mapTask(rs);
+                }
+            }
+        }
+        return null;
+    }
+
+    // Método existente - insertar tarea
+    public void insert(Task task) throws SQLException {
+        String sql = "INSERT INTO tasks (title, description, is_done, due_date) VALUES (?, ?, ?, ?)";
+        
+        try (Connection conn = ConexionDB.getConnection();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, task.getTitle());
+            stmt.setString(2, task.getDescription());
+            stmt.setBoolean(3, task.isDone());
+            stmt.setDate(4, task.getDueDate());
+            
+            stmt.executeUpdate();
         }
     }
 
-    public void update(Task t) throws Exception {
-        String sql = "UPDATE tasks SET title=?, description=?, is_done=?, due_date=? WHERE id=?";
+    // Método existente - actualizar tarea
+    public void update(Task task) throws SQLException {
+        String sql = "UPDATE tasks SET title = ?, description = ?, is_done = ?, due_date = ? WHERE id = ?";
+        
         try (Connection conn = ConexionDB.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setString(1, t.getTitle());
-            ps.setString(2, t.getDescription());
-            ps.setBoolean(3, t.isDone());
-            if (t.getDueDate() == null) ps.setNull(4, Types.DATE);
-            else ps.setDate(4, t.getDueDate());
-            ps.setInt(5, t.getId());
-            ps.executeUpdate();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setString(1, task.getTitle());
+            stmt.setString(2, task.getDescription());
+            stmt.setBoolean(3, task.isDone());
+            stmt.setDate(4, task.getDueDate());
+            stmt.setInt(5, task.getId());
+            
+            stmt.executeUpdate();
         }
     }
 
-    public void delete(int id) throws Exception {
-        String sql = "DELETE FROM tasks WHERE id=?";
+    // Método existente - eliminar tarea
+    public void delete(int id) throws SQLException {
+        String sql = "DELETE FROM tasks WHERE id = ?";
+        
         try (Connection conn = ConexionDB.getConnection();
-             PreparedStatement ps = conn.prepareStatement(sql)) {
-            ps.setInt(1, id);
-            ps.executeUpdate();
+             PreparedStatement stmt = conn.prepareStatement(sql)) {
+            
+            stmt.setInt(1, id);
+            stmt.executeUpdate();
         }
     }
 
-    private Task map(ResultSet rs) throws Exception {
-        Task t = new Task();
-        t.setId(rs.getInt("id"));
-        t.setTitle(rs.getString("title"));
-        t.setDescription(rs.getString("description"));
-        t.setDone(rs.getBoolean("is_done"));
-        t.setDueDate(rs.getDate("due_date"));
-        t.setCreatedAt(rs.getTimestamp("created_at"));
-        t.setUpdatedAt(rs.getTimestamp("updated_at"));
-        return t;
+    // Helper method para mapear ResultSet a Task
+    private Task mapTask(ResultSet rs) throws SQLException {
+        Task task = new Task();
+        task.setId(rs.getInt("id"));
+        task.setTitle(rs.getString("title"));
+        task.setDescription(rs.getString("description"));
+        task.setDone(rs.getBoolean("is_done"));
+        task.setDueDate(rs.getDate("due_date"));
+        return task;
     }
 }

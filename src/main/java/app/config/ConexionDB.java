@@ -8,14 +8,14 @@ public class ConexionDB {
 
     private static final String URL =
         "jdbc:mysql://127.0.0.1:3307/taskweb_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
-    private static final String USER = "taskweb_user";     // ajusta
-    private static final String PASS = "taskweb_pass123";  // ajusta
+    private static final String USER = "taskweb_user";
+    private static final String PASS = "taskweb_pass123";
 
     static {
         try {
             Class.forName("com.mysql.cj.jdbc.Driver");
         } catch (ClassNotFoundException e) {
-            throw new RuntimeException("MySQL Driver no encontrado en el classpath.", e);
+            throw new RuntimeException("MySQL Driver (com.mysql.cj.jdbc.Driver) no encontrado.", e);
         }
     }
 

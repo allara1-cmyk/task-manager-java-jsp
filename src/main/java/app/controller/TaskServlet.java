@@ -11,6 +11,7 @@ import jakarta.servlet.http.*;
 import java.io.IOException;
 import java.sql.Date;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Map;
 
 @WebServlet(urlPatterns = {
@@ -19,7 +20,8 @@ import java.util.Map;
         "/tasks/create",
         "/tasks/edit",
         "/tasks/update",
-        "/tasks/delete"
+        "/tasks/delete",
+        "/tasks/search"  // NUEVO
 })
 public class TaskServlet extends HttpServlet {
 
@@ -34,6 +36,23 @@ public class TaskServlet extends HttpServlet {
         try {
             if ("/tasks".equals(path)) {
                 req.setAttribute("tasks", taskDAO.findAllOrdered());
+                req.getRequestDispatcher("/tasks/index.jsp").forward(req, resp);
+                return;
+            }
+
+            // NUEVO - Búsqueda de tareas
+            if ("/tasks/search".equals(path)) {
+                String searchTerm = req.getParameter("q");
+                List<Task> tasks;
+                
+                if (searchTerm != null && !searchTerm.trim().isEmpty()) {
+                    tasks = taskDAO.searchTasks(searchTerm.trim());
+                    req.setAttribute("searchTerm", searchTerm);
+                } else {
+                    tasks = taskDAO.findAllOrdered();
+                }
+                
+                req.setAttribute("tasks", tasks);
                 req.getRequestDispatcher("/tasks/index.jsp").forward(req, resp);
                 return;
             }
@@ -82,7 +101,7 @@ public class TaskServlet extends HttpServlet {
                 int id = Integer.parseInt(req.getParameter("id"));
                 taskDAO.delete(id);
                 Flash.success(req.getSession(), "Task deleted.");
-                resp.sendRedirect(req.getContextPath() + "/tasks"); // PRG
+                resp.sendRedirect(req.getContextPath() + "/tasks");
                 return;
             }
 
@@ -96,7 +115,7 @@ public class TaskServlet extends HttpServlet {
         String title = req.getParameter("title");
         String description = req.getParameter("description");
         String dueDateStr = req.getParameter("due_date");
-        boolean isDone = req.getParameter("is_done") != null; // checkbox rule :contentReference[oaicite:11]{index=11}
+        boolean isDone = req.getParameter("is_done") != null;
 
         Map<String, String> errors = Validation.validateTask(title, dueDateStr);
         if (!errors.isEmpty()) {
@@ -117,7 +136,7 @@ public class TaskServlet extends HttpServlet {
 
         taskDAO.insert(t);
         Flash.success(req.getSession(), "Task created.");
-        resp.sendRedirect(req.getContextPath() + "/tasks"); // PRG :contentReference[oaicite:12]{index=12}
+        resp.sendRedirect(req.getContextPath() + "/tasks");
     }
 
     private void handleUpdate(HttpServletRequest req, HttpServletResponse resp) throws Exception {
@@ -152,7 +171,7 @@ public class TaskServlet extends HttpServlet {
 
         taskDAO.update(t);
         Flash.success(req.getSession(), "Task updated.");
-        resp.sendRedirect(req.getContextPath() + "/tasks"); // PRG
+        resp.sendRedirect(req.getContextPath() + "/tasks");
     }
 
     private Date parseDateOrNull(String s) {
